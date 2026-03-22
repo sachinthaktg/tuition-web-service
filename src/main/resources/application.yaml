@@ -1,0 +1,30 @@
+# Server Configuration
+server:
+  port: 8080
+
+# Database Connection (Assuming a local MySQL instance)
+spring:
+  application:
+    name: web-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/tuition_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+    username: root
+    password: admin
+
+  # Hibernate Configuration
+  # 'update' automatically updates the database schema when your Entities change.
+  # (Change to 'validate' for production later)
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+
+
+# JWT Custom Properties (We will use these in the security config)
+jwt:
+  secret: 7A24432646294A404E635266556A586E3272357538782F413F4428472B4B6250
+  expiration: 86400000
