@@ -17,8 +17,6 @@ public class ApplicationConfig {
     @Bean
     public UserDetailsService userDetailsService() {
 
-        System.out.println("🔥 TENANT: " + TenantContext.getCurrentTenant());
-
         return username -> userRepository.findByUsername(username) // Ensure this matches your repository method
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }

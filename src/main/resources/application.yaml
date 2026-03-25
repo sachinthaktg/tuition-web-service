@@ -15,6 +15,7 @@ spring:
   # 'update' automatically updates the database schema when your Entities change.
   # (Change to 'validate' for production later)
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: update
     show-sql: true

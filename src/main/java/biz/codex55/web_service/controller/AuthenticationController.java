@@ -3,12 +3,15 @@ package biz.codex55.web_service.controller;
 import biz.codex55.web_service.dto.AuthRequest;
 import biz.codex55.web_service.dto.AuthResponse;
 import biz.codex55.web_service.entity.Role;
+import biz.codex55.web_service.entity.User;
+import biz.codex55.web_service.repository.UserRepository;
 import biz.codex55.web_service.security.JwtService;
 import biz.codex55.web_service.config.TenantContext;
 import biz.codex55.web_service.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,6 +19,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -25,6 +31,7 @@ public class AuthenticationController {
     private final UserDetailsService userDetailsService;
     private final JwtService jwtService;
     private final AuthService authService;
+    private final UserRepository userRepository;
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(
@@ -34,7 +41,10 @@ public class AuthenticationController {
 
         // 1. Set the Tenant Context BEFORE authentication
         // If no tenant is provided, fallback to the master database (Super Admin login)
-        String activeTenant = (tenantId != null && !tenantId.isEmpty()) ? tenantId : "spacer_core";
+        String activeTenant = (tenantId != null && !tenantId.isEmpty()) ? tenantId : "";
+
+        log.info("🔥 TENANT: " + TenantContext.getCurrentTenant());
+
 
         try {
             // 2. Authenticate against the specific tenant's database
