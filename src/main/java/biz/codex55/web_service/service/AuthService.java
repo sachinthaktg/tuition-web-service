@@ -27,7 +27,7 @@ public class AuthService {
 
         User user = userRepo.findByUsername(username).orElseThrow();
 
-        return jwtService.generateToken(user);
+        return jwtService.generateToken(user, user.getTenant() != null ? user.getTenant().getDomainPrefix() : "spacer_core");
     }
 
     public void register(String username, String password, Role role) {

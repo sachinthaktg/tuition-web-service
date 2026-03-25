@@ -33,16 +33,16 @@ public class DataInitializer {
                 log.info("✅ Admin user created: admin / 1234");
             }
 
-            if (userRepository.findByUsername("teacher").isEmpty()) {
+            if (userRepository.findByUsername("superadmin").isEmpty()) {
 
                 User teacher = new User();
-                teacher.setUsername("teacher");
+                teacher.setUsername("superadmin");
                 teacher.setPassword(passwordEncoder.encode("1234"));
-                teacher.setRole(Role.TEACHER);
+                teacher.setRole(Role.SUPER_ADMIN);
 
                 userRepository.save(teacher);
 
-                log.info("✅ Teacher user created: teacher / 1234");
+                log.info("✅ Super Admin user created: superadmin / 1234");
             }
         };
     }

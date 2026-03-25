@@ -14,6 +14,7 @@ import java.util.List;
 public class TenantService {
 
     private final TenantRepository tenantRepository;
+    private final TenantProvisioningService tenantProvisioningService;
     // Inject your EmailService or InvoiceService here later
 
     @Transactional
@@ -47,7 +48,7 @@ public class TenantService {
         }
 
         // 4. (Future Step) Trigger Database Schema generation for the new tenant
-        // tenantProvisioningService.createSchemaForTenant(tenant.getDomainPrefix());
+        tenantProvisioningService.createSchemaForTenant(tenant.getDomainPrefix());
 
         return tenant;
     }

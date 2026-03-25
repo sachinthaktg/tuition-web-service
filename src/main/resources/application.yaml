@@ -7,7 +7,7 @@ spring:
   application:
     name: web-service
   datasource:
-    url: jdbc:mysql://localhost:3306/tuition_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/spacer_core?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
     username: root
     password: admin
 
@@ -22,6 +22,8 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
+#        tenant_identifier_resolver: biz.codex55.web_service.config.TenantIdentifierResolver
+#        multi_tenant_connection_provider: biz.codex55.web_service.config.TenantConnectionProvider
 
 
 # JWT Custom Properties (We will use these in the security config)

@@ -1,5 +1,6 @@
 package biz.codex55.web_service.security;
 
+import biz.codex55.web_service.config.TenantContext;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -39,31 +40,46 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        String username = jwtService.extractUsername(token);
-
-        if (username != null &&
-                SecurityContextHolder.getContext().getAuthentication() == null) {
-
-            UserDetails user = userDetailsService.loadUserByUsername(username);
-
-            if (jwtService.isValid(token, user)) {
-
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(
-                                user,
-                                null,
-                                user.getAuthorities()
-                        );
-
-                auth.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
-
-                SecurityContextHolder.getContext().setAuthentication(auth);
+        try {
+            // 1. MULTI-TENANCY: Extract the tenant from the JWT and set it in the ThreadLocal context
+            String tenant = jwtService.extractTenant(token);
+            if (tenant != null) {
+                TenantContext.setCurrentTenant(tenant);
             }
-        }
 
-        filterChain.doFilter(request, response);
+            // 2. Existing authentication logic
+            String username = jwtService.extractUsername(token);
+
+            if (username != null &&
+                    SecurityContextHolder.getContext().getAuthentication() == null) {
+
+                UserDetails user = userDetailsService.loadUserByUsername(username);
+
+                if (jwtService.isValid(token, user)) {
+
+                    UsernamePasswordAuthenticationToken auth =
+                            new UsernamePasswordAuthenticationToken(
+                                    user,
+                                    null,
+                                    user.getAuthorities()
+                            );
+
+                    auth.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request)
+                    );
+
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
+            }
+
+            // Continue the filter chain while the TenantContext holds the domain prefix
+            filterChain.doFilter(request, response);
+
+        } finally {
+            // 3. CRITICAL: Always clear the tenant context after the request finishes
+            // This ensures server threads pooled by Tomcat don't accidentally query the wrong database on the next request.
+            TenantContext.clear();
+        }
     }
 
     private String extractToken(HttpServletRequest request) {

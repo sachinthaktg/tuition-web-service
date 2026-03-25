@@ -19,9 +19,10 @@ public class JwtService {
     private static final String SECRET_KEY =
             "c3VwZXItc2VjcmV0LWtleS1mb3ItdGp3dC1hdXRoLXN5c3RlbS0xMjM0NTY3ODkw";
 
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(UserDetails userDetails, String domainPrefix) {
 
         Map<String, Object> claims = new HashMap<>();
+        claims.put("tenant", domainPrefix);
 
         if (userDetails instanceof User user) {
             claims.put("role", user.getRole().name());
@@ -64,5 +65,14 @@ public class JwtService {
 
     public String extractRole(String token) {
         return extractClaims(token).get("role", String.class);
+    }
+
+    public String extractTenant(String token) {
+        return Jwts.parser()
+                .verifyWith(getKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("tenant", String.class);
     }
 }
