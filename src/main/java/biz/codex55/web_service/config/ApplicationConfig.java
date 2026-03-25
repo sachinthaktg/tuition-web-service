@@ -13,9 +13,13 @@ public class ApplicationConfig {
 
     private final UserRepository userRepository;
 
+    // 1. Tells Spring how to find the user in the database
     @Bean
     public UserDetailsService userDetailsService() {
-        return username -> userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        System.out.println("🔥 TENANT: " + TenantContext.getCurrentTenant());
+
+        return username -> userRepository.findByUsername(username) // Ensure this matches your repository method
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }
 }

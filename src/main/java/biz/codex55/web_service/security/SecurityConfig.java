@@ -1,6 +1,7 @@
 package biz.codex55.web_service.security;
 
 
+import biz.codex55.web_service.config.TenantFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,11 +29,18 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtFilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, TenantFilter tenantFilter) throws Exception {
 
         http
+                // 1. Disable CSRF (Safe because we use stateless JWTs)
                 .csrf(AbstractHttpConfigurer::disable)
+
+                // 2. Enable CORS using the bean defined below
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                .addFilterBefore(tenantFilter, UsernamePasswordAuthenticationFilter.class)
+
+                // 3. Whitelist the login endpoint so users can actually get a token!
                 .authorizeHttpRequests(auth -> auth
 
                         // Public

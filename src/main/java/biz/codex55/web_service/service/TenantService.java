@@ -4,23 +4,23 @@ import biz.codex55.web_service.dto.TenantOnboardRequest;
 import biz.codex55.web_service.entity.Tenant;
 import biz.codex55.web_service.repository.TenantRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TenantService {
 
     private final TenantRepository tenantRepository;
     private final TenantProvisioningService tenantProvisioningService;
-    // Inject your EmailService or InvoiceService here later
 
     @Transactional
     public Tenant onboardTenant(TenantOnboardRequest request) {
 
-        // 1. Verify domain and email uniqueness
         if (tenantRepository.findByDomainPrefix(request.getDomainPrefix()).isPresent()) {
             throw new RuntimeException("Domain prefix is already taken.");
         }
@@ -28,7 +28,6 @@ public class TenantService {
             throw new RuntimeException("Admin email is already registered.");
         }
 
-        // 2. Build and save the Tenant
         Tenant tenant = Tenant.builder()
                 .centerName(request.getCenterName())
                 .domainPrefix(request.getDomainPrefix())
@@ -37,18 +36,22 @@ public class TenantService {
                 .adminPhone(request.getAdminPhone())
                 .setupFee(request.getSetupFee())
                 .revenueShare(request.getRevenueShare())
-                .status("ONBOARDING")
+                .status("ACTIVE")
                 .build();
 
+        // Save the tenant in the master spacer_core database
         tenant = tenantRepository.save(tenant);
 
-        // 3. Handle Initial Setup Invoice
-        if (request.isGenerateInvoice()) {
-            generateAndSendInvoice(tenant);
-        }
+        // Provision the database AND create the admin user
+        String temporaryPassword = tenantProvisioningService.createSchemaAndAdminForTenant(tenant);
 
-        // 4. (Future Step) Trigger Database Schema generation for the new tenant
-        tenantProvisioningService.createSchemaForTenant(tenant.getDomainPrefix());
+        // TODO: Dispatch Email
+        log.info("ATTENTION: Dispatching email to {}. Temporary Password is: {}",
+                tenant.getAdminEmail(), temporaryPassword);
+
+        // if (request.isGenerateInvoice()) {
+        //     emailService.sendOnboardingEmail(tenant.getAdminEmail(), temporaryPassword, request.getSetupFee());
+        // }
 
         return tenant;
     }

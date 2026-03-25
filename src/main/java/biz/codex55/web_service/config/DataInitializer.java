@@ -26,23 +26,11 @@ public class DataInitializer {
                 User admin = new User();
                 admin.setUsername("admin");
                 admin.setPassword(passwordEncoder.encode("1234")); // 🔐 encoded
-                admin.setRole(Role.ADMIN);
+                admin.setRole(Role.SUPER_ADMIN);
 
                 userRepository.save(admin);
 
                 log.info("✅ Admin user created: admin / 1234");
-            }
-
-            if (userRepository.findByUsername("superadmin").isEmpty()) {
-
-                User teacher = new User();
-                teacher.setUsername("superadmin");
-                teacher.setPassword(passwordEncoder.encode("1234"));
-                teacher.setRole(Role.SUPER_ADMIN);
-
-                userRepository.save(teacher);
-
-                log.info("✅ Super Admin user created: superadmin / 1234");
             }
         };
     }
