@@ -7,6 +7,7 @@ import org.flywaydb.core.Flyway;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
 import java.util.UUID;
@@ -20,6 +21,7 @@ public class TenantProvisioningService {
     private final DataSource dataSource;
     private final PasswordEncoder passwordEncoder; // Inject BCrypt
 
+    @Transactional
     // Returns the generated plaintext password so you can email it to the admin
     public String createSchemaAndAdminForTenant(Tenant tenant) {
         String safeTenantId = tenant.getDomainPrefix().replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
@@ -65,7 +67,7 @@ public class TenantProvisioningService {
     private void createInitialAdminUser(String schemaName, String email, String hashedPassword) {
         // We concatenate the schemaName (safe), but parameterize the user inputs (?) to prevent SQL Injection
         String insertSql = String.format(
-                "INSERT INTO %s.users (username, password_hash, role, is_active) VALUES (?, ?, ?, ?)",
+                "INSERT INTO %s.users (username, password, role, is_active) VALUES (?, ?, ?, ?)",
                 schemaName
         );
 
@@ -74,7 +76,7 @@ public class TenantProvisioningService {
                 email,            // ? 1
                 hashedPassword,   // ? 2
                 "ADMIN",          // ? 3 (Role for the tenant's primary admin)
-                true              // ? 4 (is_active)
+                true             // ? 4 (is_active)
         );
     }
 }
