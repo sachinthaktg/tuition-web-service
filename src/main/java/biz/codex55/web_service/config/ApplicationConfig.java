@@ -2,10 +2,13 @@ package biz.codex55.web_service.config;
 
 import biz.codex55.web_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.flywaydb.core.Flyway;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
+import javax.sql.DataSource;
 
 @Configuration
 @RequiredArgsConstructor
@@ -19,5 +22,16 @@ public class ApplicationConfig {
 
         return username -> userRepository.findByUsername(username) // Ensure this matches your repository method
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+    }
+
+    @Bean
+    public Flyway flyway(DataSource dataSource) {
+        Flyway flyway = Flyway.configure()
+                .dataSource(dataSource)
+                .locations("classpath:db/migration/core")
+                .load();
+
+        flyway.migrate();
+        return flyway;
     }
 }
