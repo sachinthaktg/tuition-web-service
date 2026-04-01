@@ -1,12 +1,11 @@
 package biz.codex55.web_service.controller;
 
+import biz.codex55.web_service.config.TenantContext;
 import biz.codex55.web_service.dto.AuthRequest;
 import biz.codex55.web_service.dto.AuthResponse;
 import biz.codex55.web_service.entity.Role;
-import biz.codex55.web_service.entity.User;
 import biz.codex55.web_service.repository.UserRepository;
 import biz.codex55.web_service.security.JwtService;
-import biz.codex55.web_service.config.TenantContext;
 import biz.codex55.web_service.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,7 +20,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
-import java.util.Optional;
 
 @Slf4j
 @RestController
