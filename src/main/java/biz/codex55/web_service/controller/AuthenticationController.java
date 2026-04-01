@@ -9,6 +9,7 @@ import biz.codex55.web_service.security.JwtService;
 import biz.codex55.web_service.config.TenantContext;
 import biz.codex55.web_service.service.AuthService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 @Slf4j
@@ -61,13 +63,22 @@ public class AuthenticationController {
             // Note: Update your JwtService.generateToken to accept the tenant string
             String jwtToken = jwtService.generateToken(user, activeTenant);
 
+            String refreshToken = jwtService.generateRefreshToken(user);
+
             // 4. Attach token as an HTTP-Only Cookie for security
             Cookie cookie = new Cookie("jwt", jwtToken);
             cookie.setHttpOnly(true);
             cookie.setSecure(false); // Ensure HTTPS is used in production
             cookie.setPath("/");
-            cookie.setMaxAge(24 * 60 * 60); // 1 day expiration
+            cookie.setMaxAge(15 * 60); // 15 minutes
             response.addCookie(cookie);
+
+            // Optionally, you can also set the refresh token as a cookie
+            Cookie refreshCookie = new Cookie("refresh_token", refreshToken);
+            refreshCookie.setHttpOnly(true);
+            refreshCookie.setPath("/");
+            refreshCookie.setMaxAge(7 * 24 * 60 * 60);
+            response.addCookie(refreshCookie);
 
             return ResponseEntity.ok(new AuthResponse("Login successful"));
 
@@ -94,5 +105,39 @@ public class AuthenticationController {
         response.addCookie(cookie);
 
         return ResponseEntity.ok("Logged out");
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(HttpServletRequest request, HttpServletResponse response) {
+
+        String refreshToken = Arrays.stream(request.getCookies())
+                .filter(c -> c.getName().equals("refresh_token"))
+                .map(Cookie::getValue)
+                .findFirst()
+                .orElse(null);
+
+        if (refreshToken == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        String username = jwtService.extractUsername(refreshToken);
+        UserDetails user = userDetailsService.loadUserByUsername(username);
+
+        if (!jwtService.isValid(refreshToken, user)) {
+            return ResponseEntity.status(401).build();
+        }
+
+        log.info("🔥 TENANT: " + TenantContext.getCurrentTenant());
+
+        String newAccessToken = jwtService.generateToken(user, TenantContext.getCurrentTenant());
+
+        Cookie cookie = new Cookie("jwt", newAccessToken);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(15 * 60);
+
+        response.addCookie(cookie);
+
+        return ResponseEntity.ok().build();
     }
 }
