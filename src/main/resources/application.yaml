@@ -7,7 +7,7 @@ spring:
   application:
     name: web-service
   datasource:
-    url: jdbc:mysql://localhost:3306/spacer_core?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/spacer_core?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
     username: root
     password: admin
 
@@ -17,7 +17,7 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true
     properties:
       hibernate:
@@ -26,8 +26,16 @@ spring:
 #        tenant_identifier_resolver: biz.codex55.web_service.config.TenantIdentifierResolver
 #        multi_tenant_connection_provider: biz.codex55.web_service.config.TenantConnectionProvider
 
+  flyway:
+    enabled: true
+    locations: classpath:db/migration/core
 
 # JWT Custom Properties (We will use these in the security config)
 jwt:
   secret: 7A24432646294A404E635266556A586E3272357538782F413F4428472B4B6250
   expiration: 86400000
+
+
+logging:
+  level:
+    org.flywaydb: DEBUG

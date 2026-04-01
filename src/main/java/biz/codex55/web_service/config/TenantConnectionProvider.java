@@ -31,7 +31,7 @@ public class TenantConnectionProvider implements MultiTenantConnectionProvider<S
 
         // Switch the database connection to the specific tenant schema
         // E.g., If tenantIdentifier is "apex", this effectively runs: USE tenant_apex;
-        if (!tenantIdentifier.equals("spacer_core")) {
+        if (!tenantIdentifier.equals("spacer_core") && !tenantIdentifier.isEmpty()) {
             connection.setCatalog("tenant_" + tenantIdentifier);
         } else {
             connection.setCatalog("spacer_core"); // Your master database
