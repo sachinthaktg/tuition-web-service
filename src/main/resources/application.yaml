@@ -39,3 +39,7 @@ jwt:
 logging:
   level:
     org.flywaydb: DEBUG
+
+# File Storage Configuration
+file:
+  upload-dir: C:\Users\sachi\Desktop\PersonalWorkspace\TutionClass\archive

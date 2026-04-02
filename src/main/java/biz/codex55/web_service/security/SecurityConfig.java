@@ -55,6 +55,8 @@ public class SecurityConfig {
                         // Shared
                         .requestMatchers("/api/classes/**").hasAnyRole("ADMIN", "TEACHER")
 
+                        .requestMatchers("/api/users/**").hasRole("ADMIN")
+
                         // Everything else
                         .anyRequest().authenticated()
                 )

@@ -20,12 +20,6 @@ public class Student {
     @JoinColumn(name = "user_id", unique = true)
     private User user;
 
-    private String firstName;
-    private String middleName;
-    private String lastName;
-
-    private String photoUrl;
-
     private String address;
     private String phone;
 

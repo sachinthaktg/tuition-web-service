@@ -20,8 +20,6 @@ public class Teacher {
     @JoinColumn(name = "user_id", unique = true)
     private User user;
 
-    private String firstName;
-    private String lastName;
     private String phone;
 
     private String subjectSpecialization;
