@@ -13,6 +13,7 @@ import biz.codex55.web_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -27,6 +28,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     private final FileStorageService fileStorageService;
+    private final QRCodeService qrCodeService;
 
     @Override
     public List<UserResponse> getAllUsers() {
@@ -42,14 +44,18 @@ public class UserServiceImpl implements UserService {
                 .toList();
     }
 
+    @Transactional
     @Override
-    public void createUser(CreateUserRequest request) {
+    public String createUser(CreateUserRequest request) {
 
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             throw new RuntimeException("User already exists");
         }
 
         String savedFileName = null;
+
+        // Create the content for the QR Code (e.g., login credentials)
+        String qrContent = null;
 
         // 1. If a profile picture was uploaded, save it to the local directory
         if (request.getProfilePic() != null && !request.getProfilePic().isEmpty()) {
@@ -86,6 +92,7 @@ public class UserServiceImpl implements UserService {
                         .build();
 
                 studentRepository.save(student);
+                qrContent = String.format("Name: %s\nGrade: %s\nID: %s", user.getFullName(), student.getGrade(), student.getQrCode());
             }
 
             case TEACHER -> {
@@ -101,6 +108,13 @@ public class UserServiceImpl implements UserService {
             case ADMIN -> {
                 // no extra table needed
             }
+        }
+
+        // Generate and return the Base64 QR code image
+        if (qrContent != null) {
+            return qrCodeService.generateQRCodeBase64(qrContent, 250, 250);
+        } else {
+            return null; // or some default QR code
         }
     }
 

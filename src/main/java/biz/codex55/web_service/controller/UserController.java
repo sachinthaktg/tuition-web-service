@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -26,7 +27,10 @@ public class UserController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createUser(@ModelAttribute CreateUserRequest request) {
-        userService.createUser(request);
-        return ResponseEntity.ok("User created successfully");
+        String qrCodeBase64 = userService.createUser(request);
+        return ResponseEntity.ok(Map.of(
+                "message", "User created successfully",
+                "qrCode", qrCodeBase64
+        ));
     }
 }
